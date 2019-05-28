@@ -1,0 +1,40 @@
+{
+    "name":"cfshipstation",
+    "slug":"cfshipstation",
+    "version":"0.5.1",
+    "author":"Jordan Clark <jordanclark@gmail.com>",
+    "keywords":[
+        "shipstation",
+        "shipping",
+        "packages",
+        "api",
+        "rest"
+    ],
+    "shortDescription":"API client for shipstation.com",
+    "description":"Shipstation is a pretty cool service to manage your package shipping services: get rates, create shipments, print labels, track packages",
+    "type":"modules",
+    "location":"jordanclark/cfaftership#v0.5.1",
+    "repository":{
+        "URL":"https://github.com/jordanclark/cfshipstation.git",
+        "type":"GIT"
+    },
+    "homepage":"https://github.com/jordanclark/cfshipstation",
+    "bugs":"https://github.com/jordanclark/cfshipstation/issues",
+    "license":[
+        {
+            "type":"Apache-2.0",
+            "URL":"https://github.com/jordanclark/cfshipstation/blob/master/LICENSE"
+        }
+    ],
+    "private":false,
+    "ignore":[
+        "**/.*",
+        "/test/",
+        "/tests/"
+    ],
+    "scripts":{
+        "postVersion":"package set location='jordanclark/cfaftership#v`package version`'",
+        "onRelease":"publish",
+        "postPublish":"!git push --follow-tags"
+    }
+}
