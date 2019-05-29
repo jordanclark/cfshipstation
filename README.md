@@ -11,6 +11,13 @@ Shipstation.com ColdFusion Rest API Client
 
 Shipstation is a pretty cool service to manage your package shipping services: get rates, create shipments, print labels, track packages
 
-# API documentation
+## To Install
+Run the following from commandbox:
+`box install cfshipstation`
+
+## Changes
+2019-05-28 Open source release
+
+## API documentation
 https://www.shipstation.com/developer-api/
 
