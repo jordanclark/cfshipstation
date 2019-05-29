@@ -71,22 +71,14 @@ component {
 		}
 		// this.debugLog( http )
 		out.response = toString( http.fileContent );
-		if ( request.debug && request.dump ) {
-			this.debugLog( out.response );
-		}
-		//  RESPONSE CODE ERRORS 
-		if ( !structKeyExists( http, "responseHeader" ) || !structKeyExists( http.responseHeader, "Status_Code" ) || http.responseHeader.Status_Code == "" ) {
-			out.statusCode = 500;
-		} else {
-			out.statusCode = http.responseHeader.Status_Code;
-		}
+		// this.debugLog( out.response );
+		out.statusCode = http.responseHeader.Status_Code ?: 500;
 		this.debugLog( out.statusCode );
 		if ( left( out.statusCode, 1 ) == 4 || left( out.statusCode, 1 ) == 5 ) {
-			out.success = false;
 			out.error = "status code error: #out.statusCode#";
 		} else if ( out.response == "Connection Timeout" || out.response == "Connection Failure" ) {
 			out.error = out.response;
-		} else if ( listFind( "200,201", http.responseHeader.Status_Code ) ) {
+		} else if ( left( out.statusCode, 1 ) == 2 ) {
 			out.success = true;
 		}
 		//  parse response 
