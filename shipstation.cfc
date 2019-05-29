@@ -5,17 +5,14 @@ component {
 		required string apiKey
 	,	required string apiSecret
 	,	string apiUrl= "https://ssapi.shipstation.com"
-	,	numeric timeout= 120
-	,	boolean debug= false
+	,	numeric httpTimeOut= 120
+	,	boolean debug= ( request.debug ?: false )
 	) {
 		this.apiKey = arguments.apiKey;
 		this.apiSecret = arguments.apiSecret;
 		this.apiUrl = arguments.apiUrl;
-		this.httpTimeOut = arguments.timeout;
+		this.httpTimeOut = arguments.httpTimeOut;
 		this.debug= arguments.debug;
-		if ( structKeyExists( request, "debug" ) && request.debug == true ) {
-			this.debug= request.debug;
-		}
 		// local to UTC to PST
 		this.offSet = getTimeZoneInfo().utcTotalOffset - ( 7 * 60 * 60 );
 
