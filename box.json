@@ -1,7 +1,7 @@
 {
     "name":"cfshipstation",
     "slug":"cfshipstation",
-    "version":"0.5.4",
+    "version":"0.5.5",
     "author":"Jordan Clark <jordanclark@gmail.com>",
     "keywords":[
         "shipstation",
@@ -13,7 +13,7 @@
     "shortDescription":"API client for shipstation.com",
     "description":"Shipstation is a pretty cool service to manage your package shipping services: get rates, create shipments, print labels, track packages",
     "type":"modules",
-    "location":"jordanclark/cfaftership#v0.5.4",
+    "location":"jordanclark/cfaftership#v0.5.5",
     "repository":{
         "URL":"https://github.com/jordanclark/cfshipstation.git",
         "type":"GIT"
