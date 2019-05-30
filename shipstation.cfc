@@ -58,9 +58,7 @@ component {
 			out.requestUrl &= this.structToQueryString( arguments.args );
 		}
 		this.debugLog( out.requestUrl );
-		if ( request.debug && request.dump ) {
-			this.debugLog( out );
-		}
+		// this.debugLog( out );
 		cftimer( type="debug", label="shipstation request" ) {
 			cfhttp( result="http", method=out.verb, charset="UTF-8", url=out.requestUrl, throwOnError=false, password=this.apiSecret, timeOut=this.httpTimeOut, username=this.apiKey ) {
 				if ( out.verb == "POST" || out.verb == "PUT" ) {
