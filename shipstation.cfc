@@ -194,7 +194,7 @@ component {
 	,	string confirmation
 	,	boolean residential= false
 	) {
-		return this.apiRequest( api= "GET /shipments/getrates", json= arguments );
+		return this.apiRequest( api= "POST /shipments/getrates", json= arguments );
 	}
 
 	// ////////////////////////////////////////////////////////////
