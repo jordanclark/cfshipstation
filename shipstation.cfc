@@ -53,7 +53,7 @@ component {
 		} else if ( isSimpleValue( arguments.json ) && len( arguments.json ) ) {
 			out.json = arguments.json;
 		}
-		//  copy args into url 
+		// copy args into url 
 		if ( isStruct( arguments.args ) ) {
 			out.requestUrl &= this.structToQueryString( arguments.args );
 		}
@@ -79,7 +79,7 @@ component {
 		} else if ( left( out.statusCode, 1 ) == 2 ) {
 			out.success = true;
 		}
-		//  parse response 
+		// parse response 
 		if ( len( out.response ) ) {
 			try {
 				out.response = deserializeJSON( replace( out.response, ':null', ':""', 'all' ) );
