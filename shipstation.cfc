@@ -8,13 +8,13 @@ component {
 	,	numeric httpTimeOut= 120
 	,	boolean debug= ( request.debug ?: false )
 	) {
-		this.apiKey = arguments.apiKey;
-		this.apiSecret = arguments.apiSecret;
-		this.apiUrl = arguments.apiUrl;
-		this.httpTimeOut = arguments.httpTimeOut;
+		this.apiKey= arguments.apiKey;
+		this.apiSecret= arguments.apiSecret;
+		this.apiUrl= arguments.apiUrl;
+		this.httpTimeOut= arguments.httpTimeOut;
 		this.debug= arguments.debug;
 		// local to UTC to PST
-		this.offSet = getTimeZoneInfo().utcTotalOffset - ( 7 * 60 * 60 );
+		this.offSet= getTimeZoneInfo().utcTotalOffset - ( 7 * 60 * 60 );
 
 		return this;
 	}
@@ -34,24 +34,24 @@ component {
 	}
 
 	struct function apiRequest( required string api, json= "", args= "" ) {
-		var http = {};
-		var dataKeys = 0;
-		var item = "";
-		var out = {
-			success = false
-		,	error = ""
-		,	status = ""
-		,	json = ""
-		,	statusCode = 0
-		,	response = ""
-		,	verb = listFirst( arguments.api, " " )
-		,	requestUrl = this.apiUrl & listRest( arguments.api, " " )
+		var http= {};
+		var dataKeys= 0;
+		var item= "";
+		var out= {
+			success= false
+		,	error= ""
+		,	status= ""
+		,	json= ""
+		,	statusCode= 0
+		,	response= ""
+		,	verb= listFirst( arguments.api, " " )
+		,	requestUrl= this.apiUrl & listRest( arguments.api, " " )
 		};
 		if ( isStruct( arguments.json ) ) {
-			out.json = serializeJSON( arguments.json );
-			out.json = reReplace( out.json, "[#chr(1)#-#chr(7)#|#chr(11)#|#chr(14)#-#chr(31)#]", "", "all" );
+			out.json= serializeJSON( arguments.json );
+			out.json= reReplace( out.json, "[#chr(1)#-#chr(7)#|#chr(11)#|#chr(14)#-#chr(31)#]", "", "all" );
 		} else if ( isSimpleValue( arguments.json ) && len( arguments.json ) ) {
-			out.json = arguments.json;
+			out.json= arguments.json;
 		}
 		// copy args into url 
 		if ( isStruct( arguments.args ) ) {
@@ -68,31 +68,34 @@ component {
 			}
 		}
 		// this.debugLog( http )
-		out.response = toString( http.fileContent );
+		out.response= toString( http.fileContent );
+		out.headers= http.responseHeader;
 		// this.debugLog( out.response );
-		out.statusCode = http.responseHeader.Status_Code ?: 500;
+		out.statusCode= http.responseHeader.Status_Code ?: 500;
 		this.debugLog( out.statusCode );
 		if ( left( out.statusCode, 1 ) == 4 || left( out.statusCode, 1 ) == 5 ) {
-			out.error = "status code error: #out.statusCode#";
+			out.error= "status code error: #out.statusCode#";
 		} else if ( out.response == "Connection Timeout" || out.response == "Connection Failure" ) {
-			out.error = out.response;
+			out.error= out.response;
 		} else if ( left( out.statusCode, 1 ) == 2 ) {
-			out.success = true;
+			out.success= true;
 		}
 		// parse response 
-		if ( len( out.response ) ) {
+		if ( out.success && len( out.response ) ) {
 			try {
-				out.response = deserializeJSON( replace( out.response, ':null', ':""', 'all' ) );
+				out.response= deserializeJSON( replace( out.response, ':null', ':""', 'all' ) );
 				if ( isStruct( out.response ) && structKeyExists( out.response, "ExceptionMessage" ) ) {
-					out.success = false;
-					out.error = out.response.ExceptionMessage;
+					out.success= false;
+					out.error= out.response.ExceptionMessage;
 				}
 			} catch (any cfcatch) {
 				out.error= "JSON Error: " & (cfcatch.message?:"No catch message") & " " & (cfcatch.detail?:"No catch detail");
 			}
+		} else if ( !out.success && len( out.response ) ) {
+			out.error &= " " & out.response;
 		}
 		if ( len( out.error ) ) {
-			out.success = false;
+			out.success= false;
 		}
 		return out;
 	}
@@ -103,7 +106,7 @@ component {
 
 	function dateOffset(required string date) {
 		if ( len( arguments.date ) && isDate( arguments.date ) ) {
-			arguments.date = dateAdd( "s", this.offSet, arguments.date );
+			arguments.date= dateAdd( "s", this.offSet, arguments.date );
 			arguments.date= dateTimeFormat( arguments.date, "yyyy-mm-dd HH:nn:ss" );
 		} else {
 			arguments.date= "";
@@ -112,23 +115,20 @@ component {
 	}
 
 	string function structToQueryString( required struct stInput, boolean bEncode= true, string lExclude= "", string sDelims= "," ) {
-		var sOutput = "";
-		var sItem = "";
-		var sValue = "";
-		var amp = "?";
+		var sOutput= "";
+		var sItem= "";
+		var sValue= "";
+		var amp= "?";
 		for ( sItem in stInput ) {
 			if ( !len( lExclude ) || !listFindNoCase( lExclude, sItem, sDelims ) ) {
-				try {
-					sValue = stInput[ sItem ];
-					if ( len( sValue ) ) {
-						if ( bEncode ) {
-							sOutput &= amp & lCase( sItem ) & "=" & urlEncodedFormat( sValue );
-						} else {
-							sOutput &= amp & lCase( sItem ) & "=" & sValue;
-						}
-						amp = "&";
+				sValue= stInput[ sItem ] ?: "";
+				if ( len( sValue ) ) {
+					if ( bEncode ) {
+						sOutput &= amp & lCase( sItem ) & "=" & urlEncodedFormat( sValue );
+					} else {
+						sOutput &= amp & lCase( sItem ) & "=" & sValue;
 					}
-				} catch (any cfcatch) {
+					amp= "&";
 				}
 			}
 		}
@@ -140,11 +140,11 @@ component {
 	// ////////////////////////////////////////////////////////////
 
 	function getShipment( required string shipmentId ) {
-		var out = this.apiRequest( api= "GET /shipments", args= { shipmentId= arguments.shipmentId } );
+		var out= this.apiRequest( api= "GET /shipments", args= { shipmentId= arguments.shipmentId } );
 		if ( out.success && arrayLen( out.response.shipments ) ) {
-			out.response = out.response.shipments[ 1 ];
+			out.response= out.response.shipments[ 1 ];
 		} else {
-			out.success = false;
+			out.success= false;
 			out.error &= " No shipments";
 		}
 		return out;
