@@ -89,7 +89,15 @@ component {
 		// this.debugLog( out.response );
 		out.statusCode= http.responseHeader.Status_Code ?: 500;
 		this.debugLog( out.statusCode );
-		if ( left( out.statusCode, 1 ) == 4 || left( out.statusCode, 1 ) == 5 ) {
+		if( out.statusCode == '429' ) {
+			out.delay= val( out.headers[ "X-Rate-Limit-Reset" ] ) * 1000;
+			out.error= "too many requests, quote resets in #out.delay#/ms";
+			if( this.throttle > 0 && out.delay > 0 ) {
+				server.shipstation_lastRequest += ( out.delay );
+				this.debugLog( "Delay until API limit reset for #out.delay#/ms" );
+				sleep( out.delay );
+			}
+		} else if ( left( out.statusCode, 1 ) == 4 || left( out.statusCode, 1 ) == 5 ) {
 			out.error= "status code error: #out.statusCode#";
 		} else if ( out.response == "Connection Timeout" || out.response == "Connection Failure" ) {
 			out.error= out.response;
