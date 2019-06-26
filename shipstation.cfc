@@ -5,6 +5,7 @@ component {
 		required string apiKey
 	,	required string apiSecret
 	,	string apiUrl= "https://ssapi.shipstation.com"
+	,	numeric throttle= 500
 	,	numeric httpTimeOut= 120
 	,	boolean debug= ( request.debug ?: false )
 	) {
@@ -12,6 +13,8 @@ component {
 		this.apiSecret= arguments.apiSecret;
 		this.apiUrl= arguments.apiUrl;
 		this.httpTimeOut= arguments.httpTimeOut;
+		this.throttle= arguments.throttle;
+		this.lastRequest= server.shipstation_lastRequest ?: 0;
 		this.debug= arguments.debug;
 		// local to UTC to PST
 		this.offSet= getTimeZoneInfo().utcTotalOffset - ( 7 * 60 * 60 );
@@ -46,6 +49,7 @@ component {
 		,	response= ""
 		,	verb= listFirst( arguments.api, " " )
 		,	requestUrl= this.apiUrl & listRest( arguments.api, " " )
+		,	delay= 0
 		};
 		if ( isStruct( arguments.json ) ) {
 			out.json= serializeJSON( arguments.json );
@@ -58,13 +62,25 @@ component {
 			out.requestUrl &= this.structToQueryString( arguments.args );
 		}
 		this.debugLog( out.requestUrl );
+		// throttle requests by sleeping the thread to prevent overloading api
+		if ( this.lastRequest > 0 && this.throttle > 0 ) {
+			out.delay= this.throttle - ( getTickCount() - this.lastRequest );
+			if ( out.delay > 0 ) {
+				this.debugLog( "Pausing for #out.delay#/ms" );
+				sleep( out.delay );
+			}
+		}
 		// this.debugLog( out );
 		cftimer( type="debug", label="shipstation request" ) {
-			cfhttp( result="http", method=out.verb, charset="UTF-8", url=out.requestUrl, throwOnError=false, password=this.apiSecret, timeOut=this.httpTimeOut, username=this.apiKey ) {
+			cfhttp( result="http", method=out.verb, url=out.requestUrl, username=this.apiKey, password=this.apiSecret, charset="UTF-8", throwOnError=false, timeOut=this.httpTimeOut ) {
 				if ( out.verb == "POST" || out.verb == "PUT" ) {
 					cfhttpparam( name="Content-Type", type="header", value="application/json" );
 					cfhttpparam( type="body", value=out.json );
 				}
+			}
+			if ( this.throttle > 0 ) {
+				this.lastRequest= getTickCount();
+				server.shipstation_lastRequest= this.lastRequest;
 			}
 		}
 		// this.debugLog( http )
