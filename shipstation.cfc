@@ -36,6 +36,21 @@ component {
 		return;
 	}
 
+	struct function cleanStruct( input ) {
+		return structFilter( arguments.input, function( key, value ) {
+			if( isNull( value ) ) {
+				return false;
+			} else if( isSimpleValue( value ) && value == "" ) {
+				return false;
+			} else if( isArray( value ) && arrayLen( value ) == 0 ) {
+				return false;
+			} else if( isStruct( value ) && structIsEmpty( value ) ) {
+				return false;
+			}
+			return true;
+		});
+	}
+
 	struct function apiRequest( required string api, json= "", args= "" ) {
 		var http= {};
 		var dataKeys= 0;
@@ -52,6 +67,10 @@ component {
 		,	delay= 0
 		};
 		if ( isStruct( arguments.json ) ) {
+			arguments.json= this.cleanStruct( arguments.json );
+		//	arguments.json= structFilter( arguments.json, function( key, value ) {
+		//		return !isNull( value ) || ;
+		//	} );
 			out.json= serializeJSON( arguments.json );
 			out.json= reReplace( out.json, "[#chr(1)#-#chr(7)#|#chr(11)#|#chr(14)#-#chr(31)#]", "", "all" );
 		} else if ( isSimpleValue( arguments.json ) && len( arguments.json ) ) {
@@ -62,6 +81,9 @@ component {
 			out.requestUrl &= this.structToQueryString( arguments.args );
 		}
 		this.debugLog( out.requestUrl );
+		if( len( out.json ) ) {
+			this.debugLog( out.json );
+		}
 		// throttle requests by sleeping the thread to prevent overloading api
 		if ( this.lastRequest > 0 && this.throttle > 0 ) {
 			out.delay= this.throttle - ( getTickCount() - this.lastRequest );
@@ -138,25 +160,17 @@ component {
 		return arguments.date;
 	}
 
-	string function structToQueryString( required struct stInput, boolean bEncode= true, string lExclude= "", string sDelims= "," ) {
-		var sOutput= "";
-		var sItem= "";
-		var sValue= "";
+	string function structToQueryString( required struct stInput, boolean bEncode= true ) {
+		var out= "";
 		var amp= "?";
-		for ( sItem in stInput ) {
-			if ( !len( lExclude ) || !listFindNoCase( lExclude, sItem, sDelims ) ) {
-				sValue= stInput[ sItem ] ?: "";
-				if ( len( sValue ) ) {
-					if ( bEncode ) {
-						sOutput &= amp & lCase( sItem ) & "=" & urlEncodedFormat( sValue );
-					} else {
-						sOutput &= amp & lCase( sItem ) & "=" & sValue;
-					}
-					amp= "&";
-				}
+		for ( var sItem in stInput ) {
+			var sValue= stInput[ sItem ] ?: "";
+			if ( len( sValue ) ) {
+				out &= amp & lCase( sItem ) & "=" & urlEncodedFormat( sValue );
+				amp= "&";
 			}
 		}
-		return sOutput;
+		return out;
 	}
 
 	// ////////////////////////////////////////////////////////////
@@ -302,9 +316,8 @@ component {
 
 	// orderStatus can be: awaiting_payment, awaiting_shipment, shipped, on_hold, cancelled
 	function updateOrder(
-		required numeric orderId
+		required string orderKey
 	,	string orderNumber
-	,	string orderKey
 	,	date orderDate
 	,	string orderStatus
 	,	date paymentDate
@@ -319,7 +332,7 @@ component {
 	,	numeric shippingAmount
 	,	string customerNotes
 	,	string internalNotes
-	,	boolean gift= false
+	,	boolean gift
 	,	string giftMessage
 	,	string paymentMethod
 	,	string requestedShippingService
