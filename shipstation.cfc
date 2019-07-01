@@ -36,19 +36,61 @@ component {
 		return;
 	}
 
-	struct function cleanStruct( input ) {
-		return structFilter( arguments.input, function( key, value ) {
+	struct function cleanStruct( struct input ) {
+		var out = {};
+		for( key in arguments.input ) {
+			value= arguments.input[ key ] ?: "";
 			if( isNull( value ) ) {
-				return false;
-			} else if( isSimpleValue( value ) && value == "" ) {
-				return false;
-			} else if( isArray( value ) && arrayLen( value ) == 0 ) {
-				return false;
-			} else if( isStruct( value ) && structIsEmpty( value ) ) {
-				return false;
+				return;
+			} else if( isSimpleValue( value ) ) {
+				if( len( value ) ) {
+					out[ key ] = value;
+				}
+			} else if( isArray( value ) ) {
+				if( arrayLen( value ) ) {
+					var tmp= this.cleanArray( value );
+					if( arrayLen( tmp ) ) {
+						out[ key ]= tmp;
+					}
+				}
+			} else if( isStruct( value ) ) {
+				if( !structIsEmpty( value ) ) {
+					var tmp= this.cleanStruct( value );
+					if( !structIsEmpty( tmp ) ) {
+						out[ key ] = tmp;
+					}
+				}
 			}
-			return true;
-		});
+		}
+		return out;
+	}
+
+	array function cleanArray( array input ) {
+		var out = [];
+		for( value in arguments.input ) {
+			if( isNull( value ) ) {
+				return;
+			} else if( isSimpleValue( value ) ) {
+				if( len( value ) ) {
+					arrayAppend( out, value );
+				}
+			} else if( isArray( value ) ) {
+				if( arrayLen( value ) ) {
+					var tmp= this.cleanArray( value );
+					if( arrayLen( tmp ) ) {
+						arrayAppend( out, tmp );
+					}
+				}
+			} else if( isStruct( value ) ) {
+				if( !structIsEmpty( value ) ) {
+					var tmp= this.cleanStruct( value );
+					if( !structIsEmpty( tmp ) ) {
+						arrayAppend( out, tmp );
+					}
+				}
+			}
+		}
+		return out;
 	}
 
 	struct function apiRequest( required string api, json= "", args= "" ) {
@@ -71,6 +113,10 @@ component {
 		//	arguments.json= structFilter( arguments.json, function( key, value ) {
 		//		return !isNull( value ) || ;
 		//	} );
+			out.json= serializeJSON( arguments.json );
+			out.json= reReplace( out.json, "[#chr(1)#-#chr(7)#|#chr(11)#|#chr(14)#-#chr(31)#]", "", "all" );
+		} else if ( isArray( arguments.json ) ) {
+			arguments.json= this.cleanArray( arguments.json );
 			out.json= serializeJSON( arguments.json );
 			out.json= reReplace( out.json, "[#chr(1)#-#chr(7)#|#chr(11)#|#chr(14)#-#chr(31)#]", "", "all" );
 		} else if ( isSimpleValue( arguments.json ) && len( arguments.json ) ) {
@@ -285,7 +331,7 @@ component {
 	,	string customerEmail
 	,	required struct billTo
 	,	required struct shipTo
-	,	struct items
+	,	array items
 	,	numeric amountPaid
 	,	numeric taxAmount
 	,	numeric shippingAmount
@@ -326,7 +372,7 @@ component {
 	,	string customerEmail
 	,	struct billTo
 	,	struct shipTo
-	,	struct items
+	,	array items
 	,	numeric amountPaid
 	,	numeric taxAmount
 	,	numeric shippingAmount
@@ -355,6 +401,55 @@ component {
 		return this.apiRequest( api= "POST /orders/createorder", json= arguments );
 	}
 
+	function addOrderToBatch(
+		required array batch
+	,	string orderKey
+	,	string orderNumber
+	,	date orderDate
+	,	string orderStatus
+	,	date paymentDate
+	,	date shipByDate
+	,	string customerUsername
+	,	string customerEmail
+	,	struct billTo
+	,	struct shipTo
+	,	array items= []
+	,	numeric amountPaid
+	,	numeric taxAmount
+	,	numeric shippingAmount
+	,	string customerNotes
+	,	string internalNotes
+	,	boolean gift
+	,	string giftMessage
+	,	string paymentMethod
+	,	string requestedShippingService
+	,	string carrierCode
+	,	string serviceCode
+	,	string packageCode
+	,	string confirmation
+	,	string shipDate
+	,	string weight
+	,	struct dimensions
+	,	struct insuranceOptions
+	,	struct internationalOptions
+	,	struct advancedOptions
+	,	array tagIds
+	) {
+		arguments.orderDate= this.dateOffset( arguments.orderDate ?: "" );
+		arguments.paymentDate= this.dateOffset( arguments.paymentDate ?: "" );
+		arguments.shipByDate= this.dateOffset( arguments.shipByDate ?: "" );
+		arguments.shipDate= this.dateOffset( arguments.shipDate ?: "" );
+		var b= arguments.batch;
+		structDelete( arguments, "batch" );
+		arrayAppend( b, arguments );
+		return b;
+	}
+
+	// orderStatus can be: awaiting_payment, awaiting_shipment, shipped, on_hold, cancelled
+	function updateBatchOrder( required array batch ) {
+		return this.apiRequest( api= "POST /orders/createorder", json= arguments.batch );
+	}
+
 	function shipOrder(
 		required numeric orderId
 	,	required string carrierCode
@@ -367,8 +462,8 @@ component {
 		return this.apiRequest( api= "POST /orders/markasshipped", json= arguments );
 	}
 
-	function deleteOrder( required numeric orderId, required numeric tagId ) {
-		return this.apiRequest( api= "POST /orders/addtag", json= arguments );
+	function deleteOrder( required numeric orderId ) {
+		return this.apiRequest( api= "DELETE /orders/#arguments.orderId#", json= arguments );
 	}
 
 	function addTagToOrder( required numeric orderId, required numeric tagId ) {
