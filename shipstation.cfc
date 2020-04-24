@@ -1,5 +1,5 @@
 component {
-	cfprocessingdirective( preserveCase=true );
+	// cfprocessingdirective( preserveCase=true );
 
 	function init(
 		required string apiKey
@@ -7,8 +7,9 @@ component {
 	,	string apiUrl= "https://ssapi.shipstation.com"
 	,	numeric throttle= 500
 	,	numeric httpTimeOut= 120
-	,	boolean debug= ( request.debug ?: false )
+	,	boolean debug
 	) {
+		arguments.debug = ( arguments.debug ?: request.debug ?: false );
 		this.apiKey= arguments.apiKey;
 		this.apiSecret= arguments.apiSecret;
 		this.apiUrl= arguments.apiUrl;
@@ -31,7 +32,12 @@ component {
 				request.log( arguments.input );
 			}
 		} else if( this.debug ) {
-			cftrace( text=( isSimpleValue( arguments.input ) ? arguments.input : "" ), var=arguments.input, category="shipstation", type="information" );
+			var info= ( isSimpleValue( arguments.input ) ? arguments.input : serializeJson( arguments.input ) );
+			cftrace(
+				var= "info"
+			,	category= "shipstation"
+			,	type= "information"
+			);
 		}
 		return;
 	}
