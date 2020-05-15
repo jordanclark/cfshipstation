@@ -260,6 +260,7 @@ component {
 	,	date voidDateStart
 	,	date voidDateEnd
 	,	boolean includeShipmentItems= false
+	,	numeric batchId
 	) {
 		arguments.createDateStart= this.dateOffset( arguments.createDateStart ?: "" );
 		arguments.createDateEnd= this.dateOffset( arguments.createDateEnd ?: "" );
