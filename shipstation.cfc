@@ -41,6 +41,12 @@ component {
 		}
 	}
 
+	function storeAPILimit( required numeric limit, required numeric remaining, required numeric reset ) {
+		this.apiLimit= arguments.limit;
+		this.apiRemaining= arguments.remaining;
+		this.apiReset= arguments.reset;
+	}
+
 	function debugLog( required input ) {
 		if ( structKeyExists( request, "log" ) && isCustomFunction( request.log ) ) {
 			if ( isSimpleValue( arguments.input ) ) {
@@ -185,6 +191,9 @@ component {
 			out.error= out.response;
 		} else if ( left( out.statusCode, 1 ) == 2 ) {
 			out.success= true;
+		}
+		if( out.headers[ "X-Rate-Limit-Limit" ] ?: 0 > 0 ) {
+			this.storeAPILimit( out.headers[ "X-Rate-Limit-Limit" ], out.headers[ "X-Rate-Limit-Remaining" ], out.headers[ "X-Rate-Limit-Reset" ] );
 		}
 		// parse response 
 		if ( out.success && len( out.response ) ) {
