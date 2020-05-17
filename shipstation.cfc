@@ -15,12 +15,30 @@ component {
 		this.apiUrl= arguments.apiUrl;
 		this.httpTimeOut= arguments.httpTimeOut;
 		this.throttle= arguments.throttle;
-		this.lastRequest= server.shipstation_lastRequest ?: 0;
+		this.lastRequest= 0;
 		this.debug= arguments.debug;
 		// local to UTC to PST
 		this.offSet= getTimeZoneInfo().utcTotalOffset - ( 7 * 60 * 60 );
 
 		return this;
+	}
+
+	function getWait() {
+		var wait= 0;
+		if( this.throttle > 0 ) {
+			this.lastRequest= max( this.lastRequest, server.shipstation_lastRequest ?: 0 );
+			if( this.lastRequest > 0 ) {
+				wait= max( this.throttle - ( getTickCount() - this.lastRequest ), 0 );
+			}
+		}
+		return wait;
+	}
+
+	function setLastReq( numeric extra= 0 ) {
+		if( this.throttle > 0 ) {
+			this.lastRequest= max( getTickCount(), server.shipstation_lastRequest ?: 0 ) + arguments.extra;
+			server.shipstation_lastRequest= this.lastRequest;
+		}
 	}
 
 	function debugLog( required input ) {
@@ -136,13 +154,11 @@ component {
 		if( len( out.json ) ) {
 			this.debugLog( out.json );
 		}
-		// throttle requests by sleeping the thread to prevent overloading api
-		if ( this.lastRequest > 0 && this.throttle > 0 ) {
-			out.delay= this.throttle - ( getTickCount() - this.lastRequest );
-			if ( out.delay > 0 ) {
-				this.debugLog( "Pausing for #out.delay#/ms" );
-				sleep( out.delay );
-			}
+		// throttle requests to keep it from going too fast
+		out.wait= this.getWait();
+		if( out.wait > 0 ) {
+			this.debugLog( "Pausing for #out.wait#/ms" );
+			sleep( out.wait );
 		}
 		// this.debugLog( out );
 		cftimer( type="debug", label="shipstation request" ) {
@@ -152,24 +168,17 @@ component {
 					cfhttpparam( type="body", value=out.json );
 				}
 			}
-			if ( this.throttle > 0 ) {
-				this.lastRequest= getTickCount();
-				server.shipstation_lastRequest= this.lastRequest;
-			}
 		}
+		this.setLastReq();
 		// this.debugLog( http )
 		out.response= toString( http.fileContent );
 		out.headers= http.responseHeader;
 		// this.debugLog( out.response );
 		out.statusCode= http.responseHeader.Status_Code ?: 500;
 		if( out.statusCode == '429' ) {
-			out.delay= val( out.headers[ "X-Rate-Limit-Reset" ] ) * 1000;
-			out.error= "too many requests, quote resets in #out.delay#/ms";
-			if( this.throttle > 0 && out.delay > 0 ) {
-				server.shipstation_lastRequest += ( out.delay );
-				this.debugLog( "Delay until API limit reset for #out.delay#/ms" );
-				sleep( out.delay );
-			}
+			var delay= val( out.headers[ "X-Rate-Limit-Reset" ] ) * 1000;
+			out.error= "too many requests, quote resets in #delay#/ms";
+			this.setLastReq( delay );
 		} else if ( left( out.statusCode, 1 ) == 4 || left( out.statusCode, 1 ) == 5 ) {
 			out.error= "status code error: #out.statusCode#";
 		} else if ( out.response == "Connection Timeout" || out.response == "Connection Failure" ) {
