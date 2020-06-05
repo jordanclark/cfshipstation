@@ -356,7 +356,7 @@ component {
 	,	string customerEmail
 	,	required struct billTo
 	,	required struct shipTo
-	,	array items
+	,	array items= []
 	,	numeric amountPaid
 	,	numeric taxAmount
 	,	numeric shippingAmount
@@ -430,21 +430,21 @@ component {
 		required array batch
 	,	string orderKey
 	,	string orderNumber
-	,	date orderDate
-	,	string orderStatus
+	,	required date orderDate
+	,	required string orderStatus
 	,	date paymentDate
 	,	date shipByDate
 	,	string customerUsername
 	,	string customerEmail
-	,	struct billTo
-	,	struct shipTo
+	,	required struct billTo
+	,	required struct shipTo
 	,	array items= []
 	,	numeric amountPaid
 	,	numeric taxAmount
 	,	numeric shippingAmount
 	,	string customerNotes
 	,	string internalNotes
-	,	boolean gift
+	,	boolean gift= false
 	,	string giftMessage
 	,	string paymentMethod
 	,	string requestedShippingService
