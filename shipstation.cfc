@@ -143,11 +143,11 @@ component {
 		//	arguments.json= structFilter( arguments.json, function( key, value ) {
 		//		return !isNull( value ) || ;
 		//	} );
-			out.json= serializeJSON( arguments.json );
+			out.json= serializeJSON( arguments.json, false, false );
 			out.json= reReplace( out.json, "[#chr(1)#-#chr(7)#|#chr(11)#|#chr(14)#-#chr(31)#]", "", "all" );
 		} else if ( isArray( arguments.json ) ) {
 			arguments.json= this.cleanArray( arguments.json );
-			out.json= serializeJSON( arguments.json );
+			out.json= serializeJSON( arguments.json, false, false );
 			out.json= reReplace( out.json, "[#chr(1)#-#chr(7)#|#chr(11)#|#chr(14)#-#chr(31)#]", "", "all" );
 		} else if ( isSimpleValue( arguments.json ) && len( arguments.json ) ) {
 			out.json= arguments.json;
