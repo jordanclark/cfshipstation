@@ -215,6 +215,7 @@ component {
 		this.debugLog( out.statusCode & " " & out.error );
 		return out;
 	}
+	
 
 	// ////////////////////////////////////////////////////////////
 	// HELPER FUNCTIONS
@@ -242,6 +243,7 @@ component {
 		}
 		return out;
 	}
+
 
 	// ////////////////////////////////////////////////////////////
 	// SHIPMENTS
@@ -305,6 +307,7 @@ component {
 	) {
 		return this.apiRequest( api= "POST /shipments/getrates", json= arguments );
 	}
+
 
 	// ////////////////////////////////////////////////////////////
 	// ORDERS
@@ -515,6 +518,20 @@ component {
 	function unassignUserFromOrder( required numeric orderId, required numeric userId ) {
 		return this.apiRequest( api= "POST /orders/unassignuser", json= arguments );
 	}
+
+
+	// ////////////////////////////////////////////////////////////
+	// CARRIERS
+	// ////////////////////////////////////////////////////////////
+
+	function listCarriers() {
+		return this.apiRequest( api= "GET /carriers" );
+	}
+
+	function getCarrier( required string carrierCode ) {
+		return this.apiRequest( api= "GET /carriers/getcarrier", args= arguments );
+	}
+
 
 	// ////////////////////////////////////////////////////////////
 	// WEB-HOOKS
