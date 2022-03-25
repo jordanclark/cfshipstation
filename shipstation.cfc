@@ -68,8 +68,8 @@ component {
 
 	struct function cleanStruct( struct input ) {
 		var out = {};
-		for( key in arguments.input ) {
-			value= arguments.input[ key ] ?: "";
+		for( var key in arguments.input ) {
+			var value= arguments.input[ key ] ?: "";
 			if( isNull( value ) ) {
 				return;
 			} else if( isSimpleValue( value ) ) {
@@ -97,7 +97,7 @@ component {
 
 	array function cleanArray( array input ) {
 		var out = [];
-		for( value in arguments.input ) {
+		for( var value in arguments.input ) {
 			if( isNull( value ) ) {
 				return;
 			} else if( isSimpleValue( value ) ) {
