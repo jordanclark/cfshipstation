@@ -16,6 +16,7 @@ Run the following from commandbox:
 `box install cfshipstation`
 
 ## Changes
+2022-03-25 Bugfix for missing var, thanks @tophersmith143
 2019-05-28 Open source release
 
 ## API documentation
